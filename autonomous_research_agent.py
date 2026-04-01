@@ -40,19 +40,6 @@ class ResearchState(TypedDict):
 
 
 def planner_agent(state: ResearchState):
-
-    topic = state["topic"]
-
-    prompt = f"Provide 5 search queries for: {topic}. Return ONLY the queries, one per line."
-
-    response = myclient.invoke([HumanMessage(content=prompt)])
-
-    queries = response.content.split("\n\n\n")
-
-    return {"queries": queries}
-
-
-def planner_agent(state: ResearchState):
     topic = state["topic"]
     prompt = f"Generate 5 distinct search queries to research {topic}. Return ONLY the queries, one per line, no numbers."
     response = myclient.invoke([HumanMessage(content=prompt)])
