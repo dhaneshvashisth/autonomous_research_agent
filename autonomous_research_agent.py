@@ -61,14 +61,17 @@ def reader_agent(state: ResearchState):
 
     for q in queries:
 
-        print("Printing Queries")
+        print("Query")
 
-        print(f">: {q}\n\n\n\n")
+        print(f">: {q}\n")
 
         results = web_search(q)
 
         for r in results:
-            sources.append(r["url"])
+            if "url" in r:
+                sources.append(r["url"])
+
+    sources = list(set(sources)) #removing duplicte resources if any
 
     return {"sources": sources}
 
@@ -79,10 +82,15 @@ async def researcher_agent(state: ResearchState):
     sources = state["sources"]
     notes = []
     
-    for url in sources[:3]:
+    for url in sources[:5]:
         try:
            
-            loader = WebBaseLoader(url)
+            loader = WebBaseLoader(
+                web_path=url,
+                header_template={
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'
+                }
+            )
             docs = await asyncio.to_thread(loader.load)
             content = docs[0].page_content[:4000] # Limiting characters
             
@@ -104,7 +112,22 @@ def writer_agent(state: ResearchState):
 
     notes = "\n".join(state["notes"])
 
-    prompt = f"""Write a detailed research report on:{topic} Using these notes:{notes}"""
+    prompt = f"""
+            You are a professional research analyst.
+
+            Write a structured research report on the topic: {topic}
+
+            Use the following research notes:
+
+            {notes}
+
+            The report should include:
+
+            1. Introduction
+            2. Key Findings
+            3. Analysis
+            4. Conclusion
+            """
 
     response = myclient.invoke([HumanMessage(content=prompt)])
 
